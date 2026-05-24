@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ConnectX — Talk to Strangers. Build Real Networks.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080b14;
+    --bg2: #0d1120;
+    --card: #111827;
+    --accent: #6c63ff;
+    --accent2: #00f5c4;
+    --accent3: #ff6b6b;
+    --text: #e8eaf6;
+    --muted: #8892b0;
+    --border: rgba(108,99,255,0.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ── MESH BG ── */
+  .mesh {
+    position: fixed;
+    top: -30%;
+    left: -20%;
+    width: 80vw;
+    height: 80vw;
+    background: radial-gradient(ellipse at center, rgba(108,99,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  .mesh2 {
+    position: fixed;
+    bottom: -20%;
+    right: -10%;
+    width: 60vw;
+    height: 60vw;
+    background: radial-gradient(ellipse at center, rgba(0,245,196,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 16s ease-in-out infinite alternate-reverse;
+  }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(4%,3%) scale(1.06); }
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 2.5rem;
+    background: rgba(8,11,20,0.75);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+  .logo span { color: var(--accent); }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2.2rem;
+  }
+  nav ul a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--text); }
+  .nav-cta {
+    background: var(--accent);
+    color: #fff !important;
+    padding: 0.5rem 1.3rem;
+    border-radius: 6px;
+    font-weight: 500 !important;
+    transition: opacity 0.2s !important;
+  }
+  .nav-cta:hover { opacity: 0.85; }
+
+  /* ── SECTIONS ── */
+  section { position: relative; z-index: 1; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 8rem 2rem 5rem;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(108,99,255,0.12);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 0.35rem 1.1rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    max-width: 900px;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    max-width: 560px;
+    margin: 1.8rem auto 0;
+    font-size: 1.1rem;
+    color: var(--muted);
+    font-weight: 300;
+    animation: fadeUp 0.7s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.8rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp 0.7s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9c5cff);
+    color: #fff;
+    padding: 0.85rem 2.2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(108,99,255,0.35);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 50px rgba(108,99,255,0.5);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text);
+    padding: 0.85rem 2.2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 400;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    background: rgba(108,99,255,0.06);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 3rem;
+    margin-top: 4rem;
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.9rem;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SCROLL MARQUEE ── */
+  .marquee-wrap {
+    overflow: hidden;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    background: rgba(13,17,32,0.7);
+  }
+  .marquee-track {
+    display: flex;
+    gap: 3rem;
+    white-space: nowrap;
+    animation: marquee 22s linear infinite;
+  }
+  .marquee-track span {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+  .marquee-track span.accent { color: var(--accent2); }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── SECTION TITLES ── */
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.7rem;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+  }
+  .section-title em {
+    font-style: normal;
+    color: var(--accent2);
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 1rem;
+    max-width: 520px;
+    margin-top: 0.9rem;
+  }
+
+  /* ── WHY SECTION ── */
+  .why-section {
+    padding: 7rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 3.5rem;
+  }
+  .why-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .why-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+  .why-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .why-card:hover::before { opacity: 1; }
+  .why-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .why-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+  }
+  .why-card p { color: var(--muted); font-size: 0.93rem; }
+  .why-card.featured {
+    grid-column: span 2;
+    background: linear-gradient(135deg, rgba(108,99,255,0.1), rgba(0,245,196,0.05));
+    border-color: rgba(108,99,255,0.3);
+  }
+
+  /* ── HOW IT WORKS ── */
+  .how-section {
+    padding: 7rem 2rem;
+    background: var(--bg2);
+  }
+  .how-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 3.5rem;
+    position: relative;
+  }
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 2.2rem;
+    left: 16%;
+    right: 16%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.4;
+  }
+  .step {
+    text-align: center;
+    padding: 2rem 1.5rem;
+  }
+  .step-num {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #9c5cff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.95rem;
+    margin: 0 auto 1.2rem;
+    box-shadow: 0 0 20px rgba(108,99,255,0.4);
+  }
+  .step h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  .step p { color: var(--muted); font-size: 0.9rem; }
+
+  /* ── FOR YOU SECTION ── */
+  .foryou-section {
+    padding: 7rem 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .audience-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3.5rem;
+  }
+  .audience-card {
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--border);
+    background: var(--card);
+    transition: transform 0.3s;
+  }
+  .audience-card:hover { transform: translateY(-5px); }
+  .aud-emoji { font-size: 2.4rem; margin-bottom: 1rem; display: block; }
+  .audience-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.6rem;
+  }
+  .audience-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+  .aud-tag {
+    display: inline-block;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    border-radius: 100px;
+    background: rgba(108,99,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(108,99,255,0.2);
+  }
+
+  /* ── PRIVACY STRIP ── */
+  .privacy-strip {
+    background: linear-gradient(135deg, rgba(108,99,255,0.08), rgba(0,245,196,0.05));
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 4rem 2rem;
+  }
+  .privacy-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+  }
+  .privacy-text { flex: 1; }
+  .privacy-text h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    margin-bottom: 0.8rem;
+  }
+  .privacy-text p { color: var(--muted); font-size: 0.98rem; }
+  .privacy-pills {
+    flex: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+  .pill {
+    background: rgba(0,245,196,0.08);
+    border: 1px solid rgba(0,245,196,0.2);
+    color: var(--accent2);
+    border-radius: 100px;
+    padding: 0.45rem 1.1rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    padding: 8rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-section h2 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    letter-spacing: -0.04em;
+    margin-bottom: 1rem;
+  }
+  .cta-section p { color: var(--muted); font-size: 1.05rem; margin-bottom: 2.5rem; }
+  .cta-note {
+    margin-top: 1.2rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  .cta-note span { color: var(--accent2); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  footer strong { color: var(--accent); font-family: 'Syne', sans-serif; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav ul { display: none; }
+    .why-grid, .steps, .audience-grid { grid-template-columns: 1fr; }
+    .why-card.featured { grid-column: span 1; }
+    .steps::before { display: none; }
+    .hero-stats { gap: 1.5rem; }
+    .privacy-inner { flex-direction: column; gap: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="mesh"></div>
+<div class="mesh2"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Connect<span>X</span></div>
+  <ul>
+    <li><a href="#why">Why ConnectX</a></li>
+    <li><a href="#how">How It Works</a></li>
+    <li><a href="#audience">Who It's For</a></li>
+    <li><a href="#join" class="nav-cta">Join Free →</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">🚀 Now live · 1000+ users</div>
+  <h1>Talk to Strangers.<br/><em>Build Real Networks.</em></h1>
+  <p class="hero-sub">ConnectX is the privacy-first networking app where you connect, chat, and grow your circle — completely anonymously. No personal info needed. Ever.</p>
+  <div class="hero-actions">
+    <a href="#join" class="btn-primary">Get Started Free →</a>
+    <a href="#how" class="btn-ghost">See How It Works</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">1000+</div>
+      <div class="stat-label">Active Users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Anonymous</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Data Required</div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>Anonymous Networking</span><span class="accent">✦</span>
+    <span>Real-Time Chat</span><span class="accent">✦</span>
+    <span>No Personal Info</span><span class="accent">✦</span>
+    <span>Ephemeral Messages</span><span class="accent">✦</span>
+    <span>Connect. Chat. Grow.</span><span class="accent">✦</span>
+    <span>Privacy First</span><span class="accent">✦</span>
+    <span>1000+ Users</span><span class="accent">✦</span>
+    <span>Built on Ionic + Node.js</span><span class="accent">✦</span>
+    <!-- repeat for seamless loop -->
+    <span>Anonymous Networking</span><span class="accent">✦</span>
+    <span>Real-Time Chat</span><span class="accent">✦</span>
+    <span>No Personal Info</span><span class="accent">✦</span>
+    <span>Ephemeral Messages</span><span class="accent">✦</span>
+    <span>Connect. Chat. Grow.</span><span class="accent">✦</span>
+    <span>Privacy First</span><span class="accent">✦</span>
+    <span>1000+ Users</span><span class="accent">✦</span>
+    <span>Built on Ionic + Node.js</span><span class="accent">✦</span>
+  </div>
+</div>
+
+<!-- WHY CONNECTX -->
+<section id="why" class="why-section">
+  <div class="section-label">Why ConnectX</div>
+  <div class="section-title">Networking without the <em>baggage</em></div>
+  <p class="section-sub">Most platforms demand your data before you can say hello. ConnectX flips that model entirely.</p>
+
+  <div class="why-grid">
+    <div class="why-card featured">
+      <span class="why-icon">🔒</span>
+      <h3>Zero Personal Information</h3>
+      <p>No email, no phone number, no real name. Just pick a User ID, set a password, and you're in. Your identity is entirely yours to define.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">⚡</span>
+      <h3>Real-Time Messaging</h3>
+      <p>Once connected, chat instantly with your network. Messages are delivered live via WebSocket — no refresh needed.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🌊</span>
+      <h3>Ephemeral by Design</h3>
+      <p>Your chats disappear when you log out. Every session is a clean slate — what happens on ConnectX, stays on ConnectX.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🤝</span>
+      <h3>Consent-Gated Connections</h3>
+      <p>Nobody can message you without your approval. Send a request, wait for acceptance — then the conversation begins.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🌐</span>
+      <h3>Discover 1000+ People</h3>
+      <p>Search across a growing community of users. Filter, find, and connect with people who share your interest in networking.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="how-section">
+  <div class="how-inner">
+    <div class="section-label">How It Works</div>
+    <div class="section-title">Up and running in <em>60 seconds</em></div>
+    <p class="section-sub">No lengthy sign-up. No profile setup. No social logins. Just create and go.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Pick Your Identity</h3>
+        <p>Choose a fun User ID, pick an avatar emoji, and set a password. That's your entire profile.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Find & Connect</h3>
+        <p>Search any username across 1000+ users. Send a connection request and wait for their nod.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Chat & Network</h3>
+        <p>Once accepted, open a live chat. Talk freely — messages vanish on logout for complete privacy.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR YOU -->
+<section id="audience" class="foryou-section">
+  <div class="section-label">Who It's For</div>
+  <div class="section-title">Built for the <em>curious connector</em></div>
+  <p class="section-sub">Whether you're a student, a professional, or just someone who loves meeting new people — ConnectX has a place for you.</p>
+  <div class="audience-grid">
+    <div class="audience-card">
+      <span class="aud-emoji">🎓</span>
+      <h3>College Students & Freshers</h3>
+      <p>New city? New campus? Use ConnectX to find peers, study buddies, and seniors without the awkwardness of cold DMs on Instagram.</p>
+      <span class="aud-tag">Students</span>
+    </div>
+    <div class="audience-card">
+      <span class="aud-emoji">💼</span>
+      <h3>Working Professionals</h3>
+      <p>Expand your professional circle beyond LinkedIn formalities. Real conversations, zero corporate pressure.</p>
+      <span class="aud-tag">Professionals</span>
+    </div>
+    <div class="audience-card">
+      <span class="aud-emoji">🌏</span>
+      <h3>General Public</h3>
+      <p>Introverts, explorers, curious minds — anyone who wants to meet interesting strangers and form genuine connections.</p>
+      <span class="aud-tag">Everyone</span>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY STRIP -->
+<div class="privacy-strip">
+  <div class="privacy-inner">
+    <div class="privacy-text">
+      <h2>Your Privacy. Always.</h2>
+      <p>ConnectX was built with one rule: collect nothing you don't need. Your conversations are yours alone, and they don't outlive your session.</p>
+    </div>
+    <div class="privacy-pills">
+      <span class="pill">No Email Required</span>
+      <span class="pill">No Phone Number</span>
+      <span class="pill">No Real Name</span>
+      <span class="pill">Messages Auto-Clear</span>
+      <span class="pill">No Data Sold</span>
+      <span class="pill">Consent-Based Messaging</span>
+      <span class="pill">JWT Auth</span>
+      <span class="pill">Open to All</span>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section id="join" class="cta-section">
+  <h2>Ready to connect<br/>with the unknown?</h2>
+  <p>Join 1000+ people already networking anonymously on ConnectX.<br/>No signup friction. Just create your ID and go.</p>
+  <a href="#" class="btn-primary" style="font-size:1.05rem; padding: 1rem 2.8rem;">Create Your Free Account →</a>
+  <p class="cta-note">No email. No phone. No real name. <span>Just you.</span></p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <strong>ConnectX</strong> — Your Professional Network, Reimagined.<br/>
+  <span style="font-size:0.78rem; margin-top:0.3rem; display:block;">Built with ❤️ using Node.js · MongoDB · Ionic (Angular)</span>
+</footer>
+
+</body>
+</html>
